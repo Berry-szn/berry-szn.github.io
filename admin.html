@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site editor</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F4F6F7;--panel:#fff;--ink:#15202B;--soft:#52606B;--faint:#8792A0;
+      --rule:#D3DAE0;--P:#B03A2E;--S:#1F618D;
+      --sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55}
+header{position:sticky;top:0;background:rgba(244,246,247,.95);border-bottom:1px solid var(--rule);
+       backdrop-filter:blur(6px);z-index:10}
+.hin{max-width:62rem;margin:0 auto;padding:.9rem 1.6rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+h1{font-size:1.05rem;margin:0;font-weight:600}
+.spacer{flex:1}
+button{font-family:var(--sans);font-size:.84rem;padding:.45rem .9rem;border:1px solid var(--rule);
+       background:var(--panel);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--faint)}
+button.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--S);outline-offset:2px}
+main{max-width:62rem;margin:0 auto;padding:1.6rem}
+.note{background:var(--panel);border:1px solid var(--rule);padding:1rem 1.2rem;margin-bottom:1.4rem;font-size:.88rem;color:var(--soft)}
+.note b{color:var(--ink)}
+.note code{font-family:var(--mono);font-size:.82rem;background:var(--paper);padding:.1rem .3rem}
+details.sec{border:1px solid var(--rule);background:var(--panel);margin-bottom:.7rem}
+details.sec>summary{padding:.75rem 1.1rem;cursor:pointer;font-weight:500;list-style:none;
+       display:flex;align-items:center;gap:.6rem}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::before{content:"▸";color:var(--faint);font-size:.8rem}
+details.sec[open]>summary::before{content:"▾"}
+details.sec>summary .count{font-family:var(--mono);font-size:.74rem;color:var(--faint);margin-left:auto}
+.inner{padding:0 1.1rem 1.1rem;border-top:1px solid var(--rule)}
+.f{margin:.85rem 0}
+.f label{display:block;font-size:.78rem;color:var(--faint);margin-bottom:.22rem}
+.f input,.f textarea{width:100%;font-family:var(--sans);font-size:.88rem;padding:.42rem .55rem;
+       border:1px solid var(--rule);background:#fff;color:var(--ink);border-radius:0}
+.f textarea{min-height:4.5rem;resize:vertical;line-height:1.5}
+.f input:focus,.f textarea:focus{outline:2px solid var(--S);outline-offset:-1px;border-color:var(--S)}
+.item{border:1px solid var(--rule);padding:.9rem 1rem;margin:.7rem 0;background:var(--paper)}
+.item .hd{display:flex;gap:.6rem;align-items:center;margin-bottom:.3rem}
+.item .hd .t{font-weight:500;font-size:.85rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sm{font-size:.76rem;padding:.25rem .55rem}
+.danger{color:var(--P);border-color:rgba(176,58,46,.35)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+#out{position:fixed;inset:auto 0 0 0;background:var(--ink);color:#E8EDF1;padding:1rem 1.6rem;
+     font-family:var(--mono);font-size:.78rem;display:none}
+#out.on{display:block}
+@media(max-width:640px){.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hin">
+    <h1>Site editor</h1>
+    <span class="spacer"></span>
+    <button type="button" id="preview">Preview site</button>
+    <button type="button" class="primary" id="save">Download content.js</button>
+  </div>
+</header>
+
+<main>
+  <div class="note">
+    <b>How this works.</b> Everything on your site comes from <code>assets/content.js</code>.
+    Edit the fields below, press <b>Download content.js</b>, and replace the file in your
+    repository. Nothing is uploaded anywhere and nothing needs a server.
+    <br><br>
+    <b>Adding an image or screenshot.</b> Drop the file into <code>photos/</code> or
+    <code>shots/</code> in the repository, then type its path here, for example
+    <code>shots/my_tool.png</code>. Same for audio in <code>audio/</code>.
+    <br><br>
+    <b>If a field asks for a path and you leave it blank,</b> that image is simply not shown.
+  </div>
+
+  <div id="form"></div>
+</main>
+
+<div id="out"></div>
+
+<script src="assets/content.js"></script>
+<script>
+(function(){
+  "use strict";
+  var S = JSON.parse(JSON.stringify(window.SITE));
+  var form = document.getElementById("form");
+
+  function field(label, value, path, multiline){
+    var d = document.createElement("div"); d.className = "f";
+    var l = document.createElement("label"); l.textContent = label;
+    var i = document.createElement(multiline ? "textarea" : "input");
+    i.value = value == null ? "" : value;
+    i.addEventListener("input", function(){ setPath(path, i.value); });
+    d.appendChild(l); d.appendChild(i); return d;
+  }
+  function setPath(path, v){
+    var o = S, k = path.slice();
+    while (k.length > 1) o = o[k.shift()];
+    o[k[0]] = v;
+  }
+  function sec(title, count){
+    var d = document.createElement("details"); d.className = "sec";
+    var s = document.createElement("summary");
+    s.innerHTML = title + (count != null ? '<span class="count">' + count + '</span>' : '');
+    var inner = document.createElement("div"); inner.className = "inner";
+    d.appendChild(s); d.appendChild(inner); form.appendChild(d);
+    return inner;
+  }
+  function listBlock(host, arr, fields, labelKey, newItem){
+    function draw(){
+      host.innerHTML = "";
+      arr.forEach(function(it, idx){
+        var box = document.createElement("div"); box.className = "item";
+        var hd = document.createElement("div"); hd.className = "hd";
+        var t = document.createElement("span"); t.className = "t";
+        t.textContent = (it[labelKey] || "untitled").slice(0, 70);
+        hd.appendChild(t);
+        [["↑", -1], ["↓", 1]].forEach(function(m){
+          var b = document.createElement("button"); b.className = "sm"; b.type = "button";
+          b.textContent = m[0];
+          b.onclick = function(){
+            var j = idx + m[1]; if (j < 0 || j >= arr.length) return;
+            var tmp = arr[idx]; arr[idx] = arr[j]; arr[j] = tmp; draw();
+          };
+          hd.appendChild(b);
+        });
+        var del = document.createElement("button");
+        del.className = "sm danger"; del.type = "button"; del.textContent = "Remove";
+        del.onclick = function(){ if (confirm("Remove this entry?")) { arr.splice(idx,1); draw(); } };
+        hd.appendChild(del);
+        box.appendChild(hd);
+        fields.forEach(function(f){
+          var d = document.createElement("div"); d.className = "f";
+          var l = document.createElement("label"); l.textContent = f[1];
+          var inp = document.createElement(f[2] ? "textarea" : "input");
+          inp.value = it[f[0]] == null ? "" : it[f[0]];
+          inp.addEventListener("input", function(){
+            it[f[0]] = inp.value;
+            if (f[0] === labelKey) t.textContent = inp.value.slice(0,70);
+          });
+          d.appendChild(l); d.appendChild(inp); box.appendChild(d);
+        });
+        host.appendChild(box);
+      });
+      var add = document.createElement("button");
+      add.type = "button"; add.textContent = "Add entry";
+      add.onclick = function(){ arr.push(JSON.parse(JSON.stringify(newItem))); draw(); };
+      host.appendChild(add);
+    }
+    draw();
+  }
+
+  /* profile */
+  var p = sec("Profile and contact");
+  ["name","role","line","second","email","github","cv","place","hero","heroAlt","portrait"]
+    .forEach(function(k){
+      p.appendChild(field(k, S.profile[k], ["profile", k], k === "line"));
+    });
+
+  /* home */
+  var hm = sec("Home: cards and figures", S.home.cards.length);
+  var hc = document.createElement("div"); hm.appendChild(hc);
+  listBlock(hc, S.home.cards, [["h","Heading"],["d","One line"],["to","Page"]],
+            "h", {h:"New card",d:"",to:"research.html"});
+
+  /* audio */
+  var a = sec("Audio clips", S.audio.clips.length);
+  a.appendChild(field("caption", S.audio.caption, ["audio","caption"], true));
+  var ah = document.createElement("div"); a.appendChild(ah);
+  listBlock(ah, S.audio.clips, [["label","Label"],["src","File path, e.g. audio/clip.mp3"]],
+            "label", {label:"New clip", src:"audio/.mp3"});
+
+  /* research */
+  var r = sec("Research", S.research.campaigns.length + " campaigns");
+  r.appendChild(field("rail label", S.research.rail, ["research","rail"]));
+  r.appendChild(field("heading", S.research.heading, ["research","heading"]));
+  S.research.intro.forEach(function(t, i){
+    r.appendChild(field("intro paragraph " + (i+1), t, ["research","intro", i], true));
+  });
+  var rh = document.createElement("div"); r.appendChild(rh);
+  listBlock(rh, S.research.campaigns,
+    [["name","Name"],["place","Place"],["period","Period"],["network","Network"],
+     ["what","What you did",1],["result","Result",1]],
+    "name", {name:"New campaign",place:"",period:"",network:"",what:"",result:""});
+  r.appendChild(field("figure caption", S.research.figure.caption, ["research","figure","caption"], true));
+  r.appendChild(field("figure note", S.research.figure.note, ["research","figure","note"], true));
+
+  /* publications */
+  S.publications.groups.forEach(function(g, gi){
+    var pg = sec("Publications: " + g.title, g.items.length);
+    pg.appendChild(field("group title", g.title, ["publications","groups",gi,"title"]));
+    if (g.note != null) pg.appendChild(field("group note", g.note, ["publications","groups",gi,"note"], true));
+    var h = document.createElement("div"); pg.appendChild(h);
+    listBlock(h, g.items,
+      [["t","Title",1],["a","Authors"],["v","Venue"],["y","Year"],
+       ["s","Status (published / submitted / under review / in preparation)"],
+       ["doi","DOI link, optional"],["abs","Abstract, optional",1]],
+      "t", {t:"New paper",a:"Agbelusi, A. J.",v:"",y:"",s:"in preparation",abs:""});
+  });
+
+  /* software */
+  var swTop = sec("Software: intro");
+  swTop.appendChild(field("intro", S.software.intro, ["software","intro"], true));
+  S.software.groups.forEach(function(g, gi){
+    var sw = sec("Software: " + g.name, g.items.length);
+    sw.appendChild(field("group name", g.name, ["software","groups",gi,"name"]));
+    var h = document.createElement("div"); sw.appendChild(h);
+    listBlock(h, g.items,
+      [["n","Name"],["one","One line"],["d","Description",1],["s","Status"],
+       ["img","Screenshot path"]],
+      "n", {n:"New package",one:"",d:"",s:"in development",img:"shots/.png",facts:[],feats:[]});
+  });
+
+  /* laboratory */
+  var lbTop = sec("Laboratory: heading");
+  lbTop.appendChild(field("heading", S.laboratory.heading, ["laboratory","heading"]));
+  lbTop.appendChild(field("intro", S.laboratory.intro, ["laboratory","intro"], true));
+  S.laboratory.groups.forEach(function(g, gi){
+    var lb = sec("Laboratory: " + g.name, g.items.length);
+    lb.appendChild(field("group name", g.name, ["laboratory","groups",gi,"name"]));
+    var h = document.createElement("div"); lb.appendChild(h);
+    listBlock(h, g.items, [["img","Image path"],["cap","Caption",1]],
+              "cap", {img:"photos/.jpg", cap:""});
+  });
+
+  /* startups */
+  var st = sec("Startups", S.startups.items.length);
+  st.appendChild(field("heading", S.startups.heading, ["startups","heading"]));
+  st.appendChild(field("intro", S.startups.intro, ["startups","intro"], true));
+  var sth = document.createElement("div"); st.appendChild(sth);
+  listBlock(sth, S.startups.items,
+    [["n","Name"],["tag","Tagline"],["year","Year"],["one","One line"],
+     ["d","Description",1],["built","What you built",1]],
+    "n", {n:"New venture",tag:"",year:"",one:"",d:"",built:"",facts:[],shots:[]});
+
+  /* games */
+  if (S.games) {
+    var gm = sec("GameDuel", (S.games.shots||[]).length);
+    gm.appendChild(field("heading", S.games.heading, ["games","heading"]));
+    gm.appendChild(field("intro", S.games.intro, ["games","intro"], true));
+    gm.appendChild(field("link", S.games.link, ["games","link"]));
+    var gh = document.createElement("div"); gm.appendChild(gh);
+    listBlock(gh, S.games.shots, [["img","Image path"],["cap","Caption"]], "cap",
+              {img:"shots/.png", cap:""});
+  }
+
+  /* hobbies */
+  var hb = sec("Outside the lab", S.hobbies.items.length);
+  hb.appendChild(field("heading", S.hobbies.heading, ["hobbies","heading"]));
+  hb.appendChild(field("intro", S.hobbies.intro, ["hobbies","intro"], true));
+  var hbh = document.createElement("div"); hb.appendChild(hbh);
+  listBlock(hbh, S.hobbies.items,
+    [["img","Image path, leave blank if video"],["vid","Video path, leave blank if image"],
+     ["cap","Caption"]],
+    "cap", {img:"", vid:"", cap:""});
+
+  /* about */
+  var ab = sec("About");
+  S.about.paras.forEach(function(t,i){
+    ab.appendChild(field("paragraph " + (i+1), t, ["about","paras",i], true));
+  });
+  ab.appendChild(field("image path", S.about.img, ["about","img"]));
+  ab.appendChild(field("image caption", S.about.imgAlt, ["about","imgAlt"]));
+
+  /* save */
+  document.getElementById("save").onclick = function(){
+    var header = "/* \u2500\u2500\u2500\u2500\u2500 Site content. Edited " +
+      new Date().toISOString().slice(0,10) + " \u2500\u2500\u2500\u2500\u2500 */\n\nwindow.SITE = ";
+    var body = JSON.stringify(S, null, 2).replace(/</g, "\\u003c");
+    var blob = new Blob([header + body + ";\n"], {type:"text/javascript"});
+    var url = URL.createObjectURL(blob);
+    var a2 = document.createElement("a");
+    a2.href = url; a2.download = "content.js"; a2.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+    var out = document.getElementById("out");
+    out.textContent = "Downloaded. Replace assets/content.js in your repository with this file, then commit.";
+    out.classList.add("on");
+    setTimeout(function(){ out.classList.remove("on"); }, 6000);
+  };
+  document.getElementById("preview").onclick = function(){ window.open("index.html","_blank"); };
+})();
+</script>
+</body>
+</html>

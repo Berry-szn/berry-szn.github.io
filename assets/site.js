@@ -71,8 +71,8 @@
         var m = it.vid
           ? '<video src="' + esc(it.vid) + '" muted loop playsinline autoplay preload="metadata"></video>'
           : '<img src="' + esc(it.img) + '" alt="' + esc(it.cap) + '" loading="lazy">';
-        return '<figure><a href="' + esc(src) + '" target="_blank" rel="noopener" ' +
-               'title="Open full size">' + m + "</a><figcaption>" + esc(it.cap) + "</figcaption></figure>";
+        return '<figure><a href="' + esc(src) + '" data-lb data-cap="' + esc(it.cap) +
+               '" title="Open full size">' + m + "</a><figcaption>" + esc(it.cap) + "</figcaption></figure>";
       }).join("") + "</div>";
     },
 
@@ -86,8 +86,8 @@
 
     tool: function (k) {
       var shot = k.img
-        ? '<figure class="shot"><a href="' + esc(k.img) + '" target="_blank" rel="noopener" ' +
-          'title="Open full size"><img src="' + esc(k.img) + '" alt="' + esc(k.n) +
+        ? '<figure class="shot"><a href="' + esc(k.img) + '" data-lb data-cap="' + esc(k.n) +
+          '" title="Open full size"><img src="' + esc(k.img) + '" alt="' + esc(k.n) +
           ' interface" loading="lazy"></a></figure>'
         : "";
       return '<article class="tool"><div>' +
@@ -104,7 +104,7 @@
         "</div><div>" + shot +
         ((k.shots && k.shots.length) ?
           '<div class="strip">' + k.shots.map(function (u) {
-            return '<a href="' + esc(u) + '" target="_blank" rel="noopener"><img src="' + esc(u) +
+            return '<a href="' + esc(u) + '" data-lb data-cap="' + esc(k.n) + '"><img src="' + esc(u) +
                    '" alt="' + esc(k.n) + ' screen" loading="lazy"></a>';
           }).join("") + "</div>" : "") +
         "</div></article>";

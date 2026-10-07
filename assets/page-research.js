@@ -33,7 +33,8 @@ $("r-note").textContent=S.figure.note;
 if(S.workflow){document.getElementById("w-head").textContent=S.workflow.heading;
 document.getElementById("w-intro").textContent=S.workflow.intro;
 document.getElementById("w-items").innerHTML=R.gallery(S.workflow.items,"three tall");}
-function figBlock(F){return '<figure class="plot" style="margin-top:2rem"><a href="'+e(F.img)+'" target="_blank" rel="noopener"><img src="'+e(F.img)+'" alt="" style="width:100%;display:block"></a><figcaption>'+e(F.caption)+'</figcaption></figure>';}
+function figBlock(F){return '<figure class="plot" style="margin-top:2rem"><a href="'+e(F.img)+'" data-lb data-cap="'+e(F.caption)+'"><img src="'+e(F.img)+'" alt="" style="width:100%;display:block"></a><figcaption>'+e(F.caption)+'</figcaption></figure>';}
+if(S.figureLocal){$("r-figL").innerHTML=figBlock(S.figureLocal);}
 if(S.figure3){$("r-fig3").innerHTML=figBlock(S.figure3);}
 if(S.figure2){$("r-fig2").innerHTML=figBlock(S.figure2);}
 $("r-methods").innerHTML=S.methods.map(function(m){

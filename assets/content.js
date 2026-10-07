@@ -87,6 +87,10 @@ research: {
     ]
   },
 
+  figureLocal: {
+    img:"shots/event_local.png",
+    caption:"A local earthquake at the Bolshe-Bannye field, 30 July 2024, on the seven stations that recorded it, band-pass filtered 1 to 11 Hz. Red lines are P picks, blue are S. The S minus P time at the nearest station is about 1.9 seconds: the two phases arrive within about two seconds of one another and the whole signal lasts a few seconds, which is the condition under which automatic arrival recovery falls away."
+  },
   figure3: {
     img:"shots/event_regional.png",
     caption:"A regional event recorded on the same array, 18 August 2024, band-pass filtered 1 to 11 Hz. The S minus P time at the nearest station is 20.6 seconds. The wavefront crosses the array with almost no move-out, which is why an event like this can be assigned a direction but not a location."
@@ -219,7 +223,7 @@ software: {
           d:"Built for teaching: it animates how rays sample a model and how the solution moves from the starting model toward the data. The recovered anomaly above is a portrait used as the input model, which makes it immediately obvious where the ray coverage is good and where the inversion is inventing structure.",
           facts:[["Built with","Python, tkinter"],["Audience","Students"],["Written with","Prof. Ivan Koulakov"]],
           feats:["Animated ray coverage, iteration by iteration","Checkerboard and image models","Smoothing, grid spacing and noise as controls","Variance reduction reported for every run","Side-by-side comparison of parameter choices"],
-          shots:["shots/basictomo_checkerboard.png","shots/basictomo_smoothing.png","shots/basictomo_gridspacing.png","shots/basictomo_raycoverage.png","shots/basictomo_inversion.png","shots/basictomo_conclusions.png"] },
+          shots:["shots/basictomo_checkerboard.png","shots/basictomo_smoothing.png","shots/basictomo_gridspacing.png","shots/basictomo_raycoverage.png","shots/basictomo_inversion.png"] },
         { n:"BASIC Grav", s:"released", img:"shots/basicgrav_recovered.png",
           one:"Build a body, compute its anomaly, then try to get the body back.",
           d:"A teaching tool for potential-field work. A student defines a density contrast, sees the gravity profile it produces, adds noise, then inverts and compares what comes back with what went in. The variance reduction is reported for every run, so the difference between fitting the data and recovering the model is visible rather than asserted.",
